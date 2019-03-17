@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+ 
+{% block content %}
+    <h1>Треды</h1>
+    {% for tred in treds %}
+        <pre>
+            <p>
+                {{tred.user_id}}
+                {{tred.date}}
+            </p>
+            <b>{{tred.topic}}</b>
+        </pre>
+    {% endfor %}
+{% endblock %}
