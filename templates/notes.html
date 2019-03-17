@@ -5,10 +5,10 @@
     {% for note in notes %}
         <pre>
             <p>
-                Пользователь > {{note.user_id}}
-                Дата > {{note.date.date()}}
+                Пользователь > {{ note.user_id }}
+                Дата > {{ note.date.date() }}
             </p>
-            <b>{{note.content}}</b>
+            <b>{{ note.content }}</b>
         </pre>
     {% endfor %}
     <a href="/add-note">

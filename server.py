@@ -79,7 +79,7 @@ class Note(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     tred_id = db.Column(db.Integer, db.ForeignKey('tred.id'), nullable=False)
     date = db.Column(db.DateTime, unique=False, nullable=False)
-    text = db.Column(db.Text, unique=False, nullable=False)
+    content = db.Column(db.Text, unique=False, nullable=False)
 
     def __repr__(self):
         return 'Note {} {}'.format(self.tred_id, self.user_id)
@@ -139,7 +139,7 @@ def note_insert(content, tred_id, user_id):
     tred = get_tred(tred_id)
     if tred is None:
         return jsonify({'error': 'Tred not found'})
-    note = Note(text=content, date=datetime.datetime.now())
+    note = Note(content=content, date=datetime.datetime.now(), tred_id=tred_id, user_id=user_id)
     user.notes.append(note)
     tred.notes.append(note)
     db.session.commit()
@@ -150,7 +150,7 @@ def tred_insert(topic, user_id):
     user = get_user(user_id)
     if user is None:
         return jsonify({'error': 'User not found'})
-    tred = Tred(topic=topic, date=datetime.datetime.now())
+    tred = Tred(topic=topic, date=datetime.datetime.now(), user_id=user_id)
     user.treds.append(tred)
     db.session.commit()
     return jsonify({'success': 'OK'})
