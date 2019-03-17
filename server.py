@@ -54,7 +54,7 @@ class User(db.Model):
     id = db.Column(db.Integer,  primary_key=True)
     username = db.Column(db.String(15), unique=True, nullable=False)
     password = db.Column(db.String(20), unique=False, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=False, nullable=False)
     tag = db.Column(db.String(15), unique=False, nullable=False)
     treds = db.relationship('Tred', backref='user', lazy=True)
     notes = db.relationship('Note', backref='user', lazy=True)
@@ -226,7 +226,7 @@ def add_user(username, password, email, tag):
                 email=email,
                 tag=tag)
     db.session.add(user)
-    db.commit()
+    db.session.commit()
 
 
 db.create_all()
@@ -241,7 +241,7 @@ api.add_resource(TredList, '/treds')
 api.add_resource(Treds, '/treds/<int:tred_id>')
 
 
-@app.route('/login')
+@app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
     if form.validate_on_submit():
@@ -249,7 +249,7 @@ def login():
         password = form.password.data
         if user_exists(user_name, password):
             session['username'] = user_name
-            session['user_id'] = User.query.filter_by(user_name=user_name).first().id
+            session['user_id'] = User.query.filter_by(username=user_name).first().id
             return redirect("/index")
     return render_template('login.html', title='Авторизация', form=form, username='')
 
@@ -260,7 +260,7 @@ def logout():
     return redirect('/login')
 
 
-@app.route('/register')
+@app.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegisterForm()
     if form.validate_on_submit():
@@ -283,7 +283,7 @@ def index():
     return render_template('index.html', username=username)
 
 
-@app.route('/add_tred', methods=['GET', 'POST'])
+@app.route('/add-tred', methods=['GET', 'POST'])
 def add_tred():
     if session['username'] is None:
         return redirect('/login')
@@ -296,7 +296,7 @@ def add_tred():
                            form=form, username=session['username'])
 
 
-@app.route('/add_note/<int:tred_id>', methods=['GET', 'POST'])
+@app.route('/add-note/<int:tred_id>', methods=['GET', 'POST'])
 def add_note(tred_id):
     if session['username'] is None:
         return redirect('/login')
