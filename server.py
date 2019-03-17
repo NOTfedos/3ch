@@ -276,7 +276,11 @@ def register():
 @app.route('/')
 @app.route('/index')
 def index():
-    return render_template('index.html')
+    if session['username'] is None:
+        username = ''
+    else:
+        username = session['username']
+    return render_template('index.html', username=username)
 
 
 @app.route('/add_tred', methods=['GET', 'POST'])
