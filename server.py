@@ -237,8 +237,8 @@ session = {
     'user_id': ''
 }
 
-api.add_resource(TredList, '/treds')
-api.add_resource(Treds, '/treds/<int:tred_id>')
+# api.add_resource(TredList, '/treds')
+# api.add_resource(Treds, '/treds/<int:tred_id>')
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -314,7 +314,7 @@ def treds():
 @app.route("/treds/<int:tred_id>", endpoint='tred_notes')
 def tred_notes(tred_id):
     return render_template('notes.html',
-                           title='Тред "{}"'.format(get_tred(tred_id)),
+                           title='Тред "{}"'.format(get_tred(tred_id).topic),
                            notes=get_all_notes(tred_id),
                            username=session['username'])
 
