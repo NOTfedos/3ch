@@ -251,7 +251,7 @@ def login():
             session['username'] = user_name
             session['user_id'] = User.query.filter_by(user_name=user_name).first().id
             return redirect("/index")
-    return render_template('login.html', title='Авторизация', form=form)
+    return render_template('login.html', title='Авторизация', form=form, username='')
 
 
 @app.route('/logout')
@@ -270,7 +270,7 @@ def register():
         if not user_exists(user_name, password):
             add_user(user_name, password, email, 'alpha_tester')
             return redirect('/login')
-    return render_template('register.html', title='Регистрация', form=form)
+    return render_template('register.html', title='Регистрация', form=form, username='')
 
 
 @app.route('/')
