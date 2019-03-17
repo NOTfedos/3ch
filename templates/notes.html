@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+ 
+{% block content %}
+    <h1>Записи</h1>
+    {% for note in notes %}
+        <pre>
+            <p>
+                {{note.user_id}}
+                {{note.date}}
+            </p>
+            <b>{{note.content}}</b>
+        </pre>
+    {% endfor %}
+{% endblock %}
