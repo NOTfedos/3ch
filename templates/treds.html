@@ -5,10 +5,12 @@
     {% for tred in treds %}
         <pre>
             <p>
-                Пользователь > {{tred.user_id}}
-                Дата > {{tred.date.date()}}
+                Пользователь > {{ tred.user_id }}
+                Дата > {{ tred.date.date() }}
             </p>
-            <b>{{tred.topic}}</b>
+            <a href="/treds">
+                <b>{{ tred.topic }}</b>
+            </a>
         </pre>
     {% endfor %}
     <a href="/add-tred">
