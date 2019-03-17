@@ -11,10 +11,16 @@
   <body>
     <header>
       <nav class="navbar navbar-light bg-light">
-        <a class="navbar-brand" href="#">3CH</a>
-          <a class="nav-link dropdown-toggle pull-right" href="#" role="button"></a>
-          <div class="dropdown-menu">
-              <a class="dropdown-item" href="/logout">Logout</a>
+          <a class="navbar-brand" href="#">3CH</a>
+          <div class="dropdown pull-right">
+              <a class="dropbtn" href="#" >{{ username }}</a>
+              <div class="dropdown-content">
+                  {% if username != '' %}
+                    <a href="/logout">Logout</a>
+                  {% else %}
+                    <a href="/login">Login</a>
+                  {% endif %}
+              </div>
           </div>
       </nav>
     </header>

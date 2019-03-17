@@ -233,8 +233,8 @@ db.create_all()
 db.session.commit()
 
 session = {
-    'username': None,
-    'user_id': None
+    'username': '',
+    'user_id': ''
 }
 
 api.add_resource(TredList, '/treds')
@@ -256,7 +256,7 @@ def login():
 
 @app.route('/logout')
 def logout():
-    session['username'], session['user_id'] = None, None
+    session['username'], session['user_id'] = '', ''
     return redirect('/login')
 
 
@@ -276,16 +276,12 @@ def register():
 @app.route('/')
 @app.route('/index')
 def index():
-    if session['username'] is None:
-        username = ''
-    else:
-        username = session['username']
-    return render_template('index.html', username=username)
+    return render_template('index.html', username=session['username'])
 
 
 @app.route('/add-tred', methods=['GET', 'POST'])
 def add_tred():
-    if session['username'] is None:
+    if session['username'] == '':
         return redirect('/login')
     form = AddTredForm()
     if form.validate_on_submit():
@@ -298,7 +294,7 @@ def add_tred():
 
 @app.route('/add-note/<int:tred_id>', methods=['GET', 'POST'])
 def add_note(tred_id):
-    if session['username'] is None:
+    if session['username'] == '':
         return redirect('/login')
     form = AddNoteForm()
     if form.validate_on_submit():
