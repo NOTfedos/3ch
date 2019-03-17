@@ -1,7 +1,7 @@
 import sqlite3
 from flask import Flask
 
-from wtforms import PasswordField, SubmitField, StringField
+from wtforms import PasswordField, SubmitField, StringField, TextAreaField
 from wtforms.validators import DataRequired
 from flask_wtf import FlaskForm
 
@@ -12,6 +12,8 @@ from werkzeug.security import generate_password_hash
 from flask_sqlalchemy import SQLAlchemy
 
 from flask import jsonify
+from flask import render_template
+from flask import redirect
 
 import datetime
 
@@ -31,12 +33,29 @@ class LoginForm(FlaskForm):
     submit = SubmitField('Войти')
 
 
+class AddTredForm(FlaskForm):
+    topic = TextAreaField('Тема')
+    submit = SubmitField('Добавить тред')
+
+
+class AddNoteForm(FlaskForm):
+    content = TextAreaField('Текст')
+    submit = SubmitField('Добавить запись')
+
+
+class RegisterForm(FlaskForm):
+    username = StringField('Никнейм', validators=[DataRequired()])
+    password = PasswordField('Пароль', validators=[DataRequired()])
+    email = StringField('e-mail', validators=[DataRequired()])
+    submit = SubmitField('Зарегистрироваться')
+
+
 class User(db.Model):
     id = db.Column(db.Integer,  primary_key=True)
     username = db.Column(db.String(15), unique=True, nullable=False)
+    password = db.Column(db.String(20), unique=False, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     tag = db.Column(db.String(15), unique=False, nullable=False)
-    activity = db.Column(db.Integer, nullable=False)
     treds = db.relationship('Tred', backref='user', lazy=True)
     notes = db.relationship('Note', backref='user', lazy=True)
 
@@ -64,6 +83,53 @@ class Note(db.Model):
 
     def __repr__(self):
         return 'Note {} {}'.format(self.tred_id, self.user_id)
+
+
+class TredList(Resource):
+    def get(self):
+        treds = get_all_treds()
+        return jsonify({'treds': treds})
+
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('topic', required=True)
+        parser.add_argument('user_id', required=True, type=int)
+        args = parser.parse_args()
+        return tred_insert(args['topic'], args['user_id'])
+
+
+class NoteList(Resource):
+    def get(self, tred_id):
+        notes = get_all_notes(tred_id)
+        return jsonify({'notes': notes})
+
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('content', required=True)
+        parser.add_argument('user_id', required=True, type=int)
+        parser.add_argument('tred_id', required=True, type=int)
+        args = parser.parse_args()
+        return note_insert(args['content'], args['tred_id'], args['user_id'])
+
+
+class Treds(Resource):
+    def get(self, tred_id):
+        abort_if_news_not_found_tred(tred_id)
+        tred = get_tred(tred_id)
+        return jsonify({'tred': tred})
+
+    def delete(self, user_id, tred_id,):
+        return tred_delete(user_id, tred_id)
+
+
+class Notes(Resource):
+    def get(self, note_id):
+        abort_if_news_not_found_note(note_id)
+        note = get_note(note_id)
+        return jsonify({'note': note})
+
+    def delete(self, user_id, note_id):
+        return note_delete(user_id, note_id)
 
 
 def note_insert(content, tred_id, user_id):
@@ -135,6 +201,34 @@ def get_all_notes(tred_id):
     return Note.query.filter_by(tred_id=tred_id).all()
 
 
+def abort_if_news_not_found_tred(tred_id):
+    if not get_tred(tred_id):
+        abort(404, message="Tred {} not found".format(tred_id))
+
+
+def abort_if_news_not_found_note(note_id):
+    if not get_note(note_id):
+        abort(404, message="Note {} not found".format(note_id))
+
+
+def user_exists(user_name, password):
+    user = User.query.filter_by(username=user_name).first()
+    if user is None:
+        return False
+    if user.password == password:
+        return True
+    return False
+
+
+def add_user(username, password, email, tag):
+    user = User(username=username,
+                password=password,
+                email=email,
+                tag=tag)
+    db.session.add(user)
+    db.commit()
+
+
 db.create_all()
 db.session.commit()
 
@@ -142,3 +236,84 @@ session = {
     'username': None,
     'user_id': None
 }
+
+api.add_resource(TredList, '/treds')
+api.add_resource(Treds, '/treds/<int:tred_id>')
+
+
+@app.route('/login')
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        user_name = form.username.data
+        password = form.password.data
+        if user_exists(user_name, password):
+            session['username'] = user_name
+            session['user_id'] = User.query.filter_by(user_name=user_name).first().id
+            return redirect("/index")
+    return render_template('login.html', title='Авторизация', form=form)
+
+
+@app.route('/logout')
+def logout():
+    session['username'], session['user_id'] = None, None
+    return redirect('/login')
+
+
+@app.route('/register')
+def register():
+    form = RegisterForm()
+    if form.validate_on_submit():
+        user_name = form.username.data
+        password = form.password.data
+        email = form.email.data
+        if not user_exists(user_name, password):
+            add_user(user_name, password, email, 'alpha_tester')
+            return redirect('/login')
+    return render_template('register.html', title='Регистрация', form=form)
+
+
+@app.route('/')
+@app.route('/index')
+def index():
+    return render_template('index.html')
+
+
+@app.route('/add_tred', methods=['GET', 'POST'])
+def add_tred():
+    if session['username'] is None:
+        return redirect('/login')
+    form = AddTredForm()
+    if form.validate_on_submit():
+        topic = form.topic.data
+        tred_insert(topic, session['user_id'])
+        return redirect('/treds')
+    return render_template('add_tred.html', title='Добавление треда',
+                           form=form, username=session['username'])
+
+
+@app.route('/add_note/<int:tred_id>', methods=['GET', 'POST'])
+def add_note(tred_id):
+    if session['username'] is None:
+        return redirect('/login')
+    form = AddNoteForm()
+    if form.validate_on_submit():
+        content = form.content.data
+        note_insert(content, tred_id, session['user_id'])
+        return redirect('/treds/{}'.format(tred_id))
+    return render_template('add_note.html', title='Добавление записи',
+                           form=form, username=session['username'])
+
+
+@app.route('/treds')
+def treds():
+    return render_template('treds.html', title='Треды',
+                           treds=get_all_treds(), username=session['username'])
+
+
+@app.route('/treds/<int:tred_id>')
+def treds(tred_id):
+    return render_template('notes.html',
+                           title='Тред "{}"'.format(get_tred(tred_id)),
+                           notes=get_all_notes(tred_id),
+                           username=session['username'])
