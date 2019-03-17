@@ -305,10 +305,10 @@ def add_note(tred_id):
                            form=form, username=session['username'])
 
 
-'''@app.route("/treds", endpoint='treds')
+@app.route("/treds", endpoint='treds')
 def treds():
     return render_template('treds.html', title='Треды',
-                           treds=get_all_treds(), username=session['username'])'''
+                           treds=get_all_treds(), username=session['username'])
 
 
 @app.route("/treds/<int:tred_id>", endpoint='tred_notes')

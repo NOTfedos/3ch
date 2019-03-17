@@ -5,8 +5,8 @@
     {% for tred in treds %}
         <pre>
             <p>
-                {{tred.user_id}}
-                {{tred.date}}
+                Пользователь > {{tred.user_id}}
+                Дата > {{tred.date.date()}}
             </p>
             <b>{{tred.topic}}</b>
         </pre>

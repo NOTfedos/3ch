@@ -5,8 +5,8 @@
     {% for note in notes %}
         <pre>
             <p>
-                {{note.user_id}}
-                {{note.date}}
+                Пользователь > {{note.user_id}}
+                Дата > {{note.date.date()}}
             </p>
             <b>{{note.content}}</b>
         </pre>
