@@ -313,8 +313,13 @@ def treds():
 
 @app.route("/treds/<int:tred_id>", endpoint='tred_notes')
 def tred_notes(tred_id):
+    tred = get_tred(tred_id)
+    if tred is not None:
+        desc = tred.topic
+    else:
+        abort_if_news_not_found_tred(tred_id)
     return render_template('notes.html',
-                           title='Тред "{}"'.format(get_tred(tred_id).topic),
+                           title='Тред "{}"'.format(desc),
                            notes=get_all_notes(tred_id),
                            username=session['username'])
 
